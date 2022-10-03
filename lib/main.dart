@@ -81,7 +81,7 @@ class _ListaWidgetState extends State<ListaWidget>{
         Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VistaDetalle()
+              builder: (context) => VistaRequest(paseDeArgs: valor)
             )
         );
       },
@@ -101,6 +101,75 @@ class VistaDetalle extends StatelessWidget{
           child: Text("ESTA ES UNA VISTA DE DETALLE!"),
       ),
     );
+  }
+
+}
+
+// segunda versión de lista detalle
+// en esta haremos request
+class VistaRequest extends StatefulWidget {
+
+  VistaRequest({required this.paseDeArgs});
+
+  final String paseDeArgs;
+
+  @override
+  _VistaRequestState createState() => _VistaRequestState(argsExterno: paseDeArgs);
+}
+
+class _VistaRequestState extends State<VistaRequest> {
+
+  _VistaRequestState({required this.argsExterno});
+
+  final String argsExterno;
+
+  // OJO - esto es necesario para el request
+  late Future<List<Carro>> carros;
+
+  // si usas el future builder hay que hacer request en init
+  // existen métodos del ciclo de vida
+
+  @override
+  void initState() {
+    super.initState();
+    carros = obtenerCarros();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("DETALLE CON REQUEST")),
+      body: Center(
+        child: FutureBuilder<List<Carro>> (
+          future: carros,
+          builder: (context, snapshot) {
+
+            if(snapshot.hasData){
+
+              // vamos a regresar el widget si se completo la promesa con éxito
+              return Column(
+                  children: [
+                    Text(snapshot.data![0].marca),
+                    Text(snapshot.data![0].modelo),
+                    Text("${snapshot.data![0].anio}"),
+                    Text(argsExterno),
+                    Image.network("https://www.foodchallenges.com/wp-content/uploads/2018/08/beast-pizza2-184x184.jpeg")
+                  ]
+              );
+
+            } else if (snapshot.hasError){
+
+              // regresamos otro widget en caso de error
+              return Text("${snapshot.error}");
+            }
+
+            // si no hay datos y no hay error significa que seguimos trabajando
+            return CircularProgressIndicator();
+          },
+        )
+      ),
+    );
+
   }
 
 }
